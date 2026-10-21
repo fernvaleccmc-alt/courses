@@ -1,0 +1,1795 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fernvale CC Courses</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Browse current and upcoming courses and workshops at Fernvale Community Club.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: sticky filter rail over a day-by-day timetable of course cards; one-day workshops get their own dated list. */
+:root{ color-scheme:light;
+  --bg:#ffffff; --surface:#ffffff; --ink:#1f1a1a; --muted:#6b6262; --line:#ecdede;
+  --accent:#d71920; --accent-ink:#ffffff; --accent-soft:#fde8e8; --band:#ffffff; --band-ink:#1f1a1a;
+  --green:#1d7a46; --green-soft:#e2f4e9;
+  --sun:#a86400; --sun-soft:#fdf0d9; --sky:#2c5fa8; --sky-soft:#e3ecf8; --grey-soft:#f4f0f0;
+  --display:"Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --radius:12px;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto}
+.band{background:var(--band);color:var(--band-ink)}
+.band{border-bottom:3px solid var(--accent)}
+.band .lede a{font-weight:700}
+a{color:var(--accent)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{padding-block:30px 26px;display:grid;gap:14px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(36px,7.5vw,64px);color:var(--accent);line-height:1.05;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.subtitle{font-family:var(--display);font-weight:600;font-size:clamp(20px,3.6vw,28px);line-height:1.15;margin-top:-4px}
+.lede{margin:0;color:var(--muted);max-width:62ch}
+.contact{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;color:var(--muted)}
+.contact b{color:var(--ink);font-weight:600}
+
+.filters{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line);display:grid;gap:10px}
+.searchrow{display:flex;gap:10px;flex-wrap:wrap}
+.search{flex:1 1 240px;min-width:0;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.search::placeholder{color:var(--muted)}
+select{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);flex:0 1 auto;min-width:0}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 13px;font-size:14px;font-weight:600;cursor:pointer;color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.toggle{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.toggle input{accent-color:var(--accent);width:16px;height:16px}
+
+.summary{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;padding-block:16px 4px;color:var(--muted);font-size:14px}
+.summary strong{color:var(--ink)}
+.reset{background:none;border:0;color:var(--accent);font-weight:600;cursor:pointer;padding:0}
+
+section.day{padding-block:18px 6px}
+.dayhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin-bottom:12px}
+@media (max-width:640px){.filters{position:static}}
+h2{font-family:var(--display);font-weight:600;font-size:22px;margin:0}
+.daycount{color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+@media (max-width:420px){.grid{grid-template-columns:1fr}}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pill{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.02em}
+.st-ongoing{background:var(--green-soft);color:var(--green)}
+.st-soon{background:var(--sun-soft);color:var(--sun)}
+.st-upcoming{background:var(--sky-soft);color:var(--sky)}
+.st-tbc{background:var(--grey-soft);color:var(--muted)}
+.cat{font-size:12px;color:var(--muted);font-weight:600}
+h3{font-size:17px;line-height:1.3;margin:0;font-weight:700;text-wrap:balance}
+.when{display:grid;gap:2px;font-size:14px}
+.when .t{font-weight:600}
+.when .d{color:var(--muted);font-variant-numeric:tabular-nums}
+dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:14px}
+dt{color:var(--muted)}
+dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.fee{font-variant-numeric:tabular-nums;font-weight:600}
+.fee small{font-weight:500;color:var(--muted)}
+details{font-size:14px;border-top:1px dashed var(--line);padding-top:8px}
+summary{cursor:pointer;color:var(--accent);font-weight:600}
+details p{margin:8px 0 0;color:var(--ink);white-space:pre-line}
+details .nl{color:var(--sun);font-weight:600}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:auto;padding-top:4px}
+.code{font-family:var(--mono);font-size:13px;background:var(--grey-soft);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--ink)}
+.code[data-copied]{border-color:var(--accent);color:var(--accent)}
+.reg{background:var(--accent);color:var(--accent-ink);text-decoration:none;font-weight:700;font-size:14px;padding:7px 14px;border-radius:8px}
+.reg:hover{filter:brightness(1.08)}
+.nocode{font-size:13px;color:var(--muted)}
+
+.empty{padding:48px 0;text-align:center;color:var(--muted)}
+footer{padding-block:32px 40px;color:var(--muted);font-size:13px;display:grid;gap:6px;border-top:1px solid var(--line);margin-top:28px}
+.sync{font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}.card:hover{border-color:var(--accent)}}
+</style>
+</head>
+<body>
+
+
+<div class="band gut"><div class="wrap">
+  <header class="top">
+    <h1>Fernvale Community Club</h1>
+    <div class="subtitle">Courses &amp; workshops</div>
+    <p class="lede">See what's running now and what's coming up. Register on <a href="https://www.onepa.gov.sg/courses/search?course=&category=&category2=&sort=rel_prod&outlet=Fernvale+CC&days=All&time=all" target="_blank" rel="noopener">onePA</a> with the course code, or at any CC office.</p>
+    <div class="contact">
+      <span>Office <b>6322 6588</b></span>
+      <span>Email <b>PA_FERNVALECC@PA.GOV.SG</b></span>
+      <span>Open <b>10am – 6pm daily</b>, except public holidays</span>
+    </div>
+  </header>
+</div></div>
+
+<div class="gut"><div class="wrap">
+  <div class="filters" role="search">
+    <div class="searchrow">
+      <input class="search" id="q" type="search" placeholder="Search e.g. yoga, ballet, baking" aria-label="Search courses">
+      <select id="cat" aria-label="Category"><option value="">All categories</option></select>
+    </div>
+    <div class="chips" id="days" aria-label="Day"></div>
+    <div class="searchrow" style="align-items:center;justify-content:space-between">
+      <div class="chips" id="aud" aria-label="Who it's for"></div>
+      <label class="toggle"><input type="checkbox" id="tbc" checked> Show courses with dates to be confirmed</label>
+    </div>
+  </div>
+
+  <div class="summary"><span id="count"></span><button class="reset" id="reset" hidden>Clear filters</button></div>
+  <main id="list"></main>
+
+  <footer>
+    <div>Course details may change. Please check onePA or call the CC office before registering.</div>
+    <div class="sync" id="sync"></div>
+  </footer>
+</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script type="text/csv" id="fallback">,"Fernvale Community Club
+Registration via onepa.gov.sg or at any CC office during operation hours.
+Operation Hours: 10am to 6pm Monday to Sunday, Except Public Holidays. 
+Office No: 6322 6588 Email: PA_FERNVALECC@PA.GOV.SG
+                                                                                                                                                                                                                                                                         "
+
+,Monday
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,"Speech & Drama
+For aged 4 to 6 years old",12/10/26,7/12/26,7:00pm to 7:45pm,"Level 4, Music Room 402",C027240523,"$180(M)/$190(NM)
+8 Sessions","
+
+NO LESSON ON 9/11/2026 (PH)
+For aged 4 to 6 years old
+Learning outcome, children will be able to:
+1) Express emotions through body, facial and voice
+2) Articulate simple dialogues with clarity
+3) Develop vocal expressions through analysis and exploration of different sounds
+4) Exhibit the core values of respect, responsibility, honesty, caring and teamwork in their drama activities and interactions
+
+",MYMCAS
+,"Speech & Drama
+For aged 7 to 9 years old",12/10/26,7/12/26,8:00pm to 8:45pm,"Level 4, Music Room 402",C027240528,"$180(M)/$190(NM)
+8 Sessions","NO LESSON ON 9/11/2026 (PH)
+For 7 to 9 years old
+Learning outcome, children will be able to:
+1) Present using good posture and gestures
+2) Develop personal confidence and creativity 
+3) Perform mime scenarios clearly
+4) Exhibit the core values of respect, responsibility, honesty, caring and teamwork in their drama activities and interactions
+
+",MYMCAS
+,Cartoon Drawing (Age 4 to 10 years old),TBC,TBC,"5.30pm to
+7.00pm","Level 4,
+Activity Room 405",TBC,"$120(M)/$130(NM)
+8 Sessions","No class on 19/10, 26/10, 9/11, 7/12 and 14/12
+Ongoing Class - Existing and New Student are Welcome
+Material fees $25 (Payable to Trainer on every first lesson)
+*Not necessary to bring any writing or painting materials, all supplies are included in the material fees",Carol Ho
+,Cartoon Drawing  (Age 4 to 10 years old),12/10/26,4/1/27,"7.30pm to
+9.00pm",,C027247041,"$120(M)/$130(NM)
+8 Sessions",,Carol Ho
+,Yin Yang Yoga                                                 ,15/1/24,18/3/24,"7:00 pm to
+8:00 pm","Level 4,
+Dance Studio 407",C027058642,"$75(M)/$82(NM)
+8 Sessions",,Christine Lee
+,Hatha Yoga (Intermediate),31/7/23,25/9/23,"8:15 pm to
+9:15 pm","Level 4,
+Dance Studio 408",C027027824,"$96(M)/$105(NM)
+8 Sessions","Bring along yoga mat
+",Christine Lee
+,"English Phonics & Reading 
+ (Pre-Primary) *For Beginners*",17/8/26,10/12/26,"5.45pm to
+6.45pm","Level 4,
+Activity Room 406",C027231538,"$160(M)/$170(NM)
+8 Sessions","This class is open to children 5 years and above
+Material fee: $20 per term 
+(payable to trainer directly on the 1st lesson)
+Min: 5 pax, Max: 16 pax
+
+* Please contact Miss Catherine Lai for assessment at 90905231 before new registration
+
+",Lai Meng Siew
+,"English Phonics & Reading
+ (Pre-Primary) *For existing students*",17/8/26,12/10/26,"6.45pm to 
+7.45pm","Level 4,
+Activity Room 406",C027236516,"$160(M)/$170(NM)
+8 Sessions",,Lai Meng Siew
+,Yin Yang Yoga,TBC,TBC,"7:00pm to
+8:00pm","Level 4,
+Dance Studio 407",TBC,"$75(M)/$82(NM)
+8 Sessions","
+
+Bring along yoga mat and Yoga Blocks (1 pair)",Christine Lee
+,"Pilates - Matwork for Beginners (HealthierSG)
+",TBC,TBC,"8.15 pm to
+9.15 pm","Level 4,
+Dance Studio 407",TBC,"$85(M)/$93(NM)
+8 Sessions",,Christine Lee
+,Pilates - Matwork for Beginners (HealthierSG),TBC,TBC,"8.15pm to
+9.15pm","Level 4,
+Dance Studio 407",TBC,"$85(M)/$93(NM)
+8 Sessions",,Christine Lee
+,Zumba Fitness,TBC,TBC,"8.00 pm to
+9.00 pm","Level 4,
+Dance Studio 408",TBC,"$50(M)/$55(NM)
+4 Sessions","
+Registration on first come first served.
+4 sessions per term
+Min: 8 pax | Max: 15 pax
+Bring along own water bottle and towel.
+",Abdul Ghani 
+,"Taijiquan (Chen Style) (HealthierSG)
+NEW ",11/2/26,28/12/26,10:00am - 11:30am,Level 5 Open Space,C027247459,"$64(M)/$70(NM)
+8 Sessions","NO LESSON ON 9/11/2026 (PH)
+age from 7 years old 
+Min: 20 pax   Max: 30pax
+8 sessions per term
+No costume fee is required",Irene Yu
+,Tuesday
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,Yogalates,28/3/23,16/5/23,"6.30 pm to
+7.30 pm","Level 4,
+Dance Studio 407",C026999897,"$85(M)/$93(NM)
+8 Sessions","Bring along yoga mat
+",Christine Lee
+,"Elementary Korean Language 
+(Intermediate 1)
+",9/1/24,19/3/24,"7.30 pm to
+9.00 pm","Level 4,
+Activity Room 405",C027048563,"$180(M)/$190(NM)
+10 Sessions",NO LESSON ON 13/2/2024 (CNY),Cho Young Mi
+,"Elementary Korean Language 
+(Stage 1)
+",TBC,TBC,"7.00 pm to
+9.00 pm","Level 4,
+Activity Room 405",TBC,"$160(M)/$170(NM)
+8 Sessions","For 13yo and above 
+Material Fees: $15 payable to trainer directly
+",Cho Young Mi
+,"Elementary Korean Language 
+(Stage 2)
+NEW ",TBC,TBC,"7.00 pm to
+9.00 pm","Level 4,
+Activity Room 405",TBC,"$160(M)/$170(NM)
+8 Sessions","For 13yo and above 
+Material Fees: $15 payable to trainer directly
+",Cho Young Mi
+ ,Chinese Calligraphy,18/8/26,20/10/26,4.00pm to 5.30pm,"Level 4,
+Activity Room 406",20/10/26,"$90(M)/$100(NM)
+10 Sessions","For adults and seniors
+Material Fees: $20 payable to trainer directly.
+Participants to bring a small bucket/bottle for the class.",Yap Ah Lai
+,"Pilates - Matwork for Beginners (HealthierSG)
+",17/11/26,12/1/26,11:30am to 12:30pm,"Level 4,
+Dance Studio 407",C027250354,$100 (M)/$110 (NM),"NO LESSON ON 29/12/2026
+Bring own yoga mat",Pearlie Leong
+,Yoga Burn,17/11/26,19/1/27,"8.00 pm to 
+9.00 pm","Level 4,
+Dance Studio 407",C027247033,"$90(M)/$100(NM)
+8 Sessions","No class on 29/12 and 5/1
+Ongoing Class - Existing and New Student are Welcome
+Registration is on a first-come, first-served basis
+Please bring your own Yoga mat",Derek Cheong
+,Zumba Fitness (HealthierSG) ,17/11/26,22/12/26,"9.30 am to
+10.30 am","Level 4,
+Dance Studio 408",C027247029,"$75(M)/$80(NM)
+6 Sessions","Ongoing Class - Existing and New Student are Welcome
+Registration is on a first-come, first-served basis",Cindy Yeap
+,Recreational Folk Dance (Intermediate),14/7/26,3/11/26,"1.30 pm to 
+3.00 pm","Level 4,
+Dance Studio 408",C027230828,"$35(M)/$45(NM)
+10 Sessions","NO LESSONS ON 18/8/26, 25/8/26, 1/9/26, 8/9/26, 15/9/26, 22/9/26, 29/9/26","How 
+Boon Pang"
+,K! Fit,17/11/26,8/12/26,"7.00 pm to
+8.00 pm","Level 4,
+Dance Studio 408","
+C027249312","$58(M)/$68(NM)
+4 Sessions","Ongoing Class - Existing and New Student are Welcome
+Registration is on a first-come, first-served basis",Alvin Tan 
+,Zumba Fitness,17/11/26,8/12/26,"8.15 pm to 
+9.15 pm",,C027249314,"$58(M)/$68(NM)
+4 Sessions"
+,Taijiquan (Yang Style),22/9/26,11/10/26,9.00am to 10.30am,"Level 5,
+Open area",C027240566 ,"$35(M)/$45 (NM)
+8 Sessions 
+(for this term only)","
+Attire: Tshirt, pants and shoes
+",To Chee Kan
+,"Zumba® Kids
+NEW CLASS",TBC,TBC,4:00pm - 5:00pm,"Level 4,
+Dance Studio 408",C027221136,"$69(M)/$79(NM)
+4 Sessions",for aged 7 to 11 years old ,Ms Jeslyn Law 
+,Wednesday
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,Children's Art (Age 5 to 12 years old),28/10/26,16/12/26,"7.00 pm to 
+8.30 pm","Level 4,
+Activity Room 405",C027222341,"$80(M)/ $90(NM)
+8 sessions","
+New and Existing student all are Welcome!
+Registration is on a first-come, first-served basis
+No material fee however participants to bring for every lesson - drawing block, pencils, eraser, oil pastel 24 colours, brush, apron (if needed), water colour cake and small container for water",Yeo Chin Hua
+,Yin Yoga                                                           ,17/1/24,6/3/24,"8.00 am to 
+9.00 am","Level 4,
+Dance Studio 407",C027058663,"$85(M)/$93(NM)
+8 Sessions","Bring along yoga mat
+",Christine Lee
+,Cardio Mix,TBC,TBC,"7.30 pm to 
+8.30 pm","Level 4,
+Dance Studio 407",TBC,"$110 (M)/$120 (NM)
+8 Sessions",,Angela Wong Choy Wan 
+,K!Fit ,18/11/26,30/12/26,10.15am - 11.15am,"Level 4,
+Dance Studio 408",C027249315,"$58(M)/$68(NM)
+4 Sessions","NO CLASS ON 9, 16 AND 23/12
+Ongoing Class - Existing and New Student are Welcome
+Registration is on a first-come, first-served basis
+",Alvin Tan 
+,Zumba Fitness (HealthierSG) ,18/11/26,30/12/26,11.30am - 12.30pm,,C027249316,"$58(M)/$68(NM)
+4 Sessions"
+,"Recreational Folk Dance (Elementary)
+",24/6/26,14/10/26,"1.30 pm to 
+3.00 pm","Level 4,
+Dance Studio 408",C027226691,"$32(M)/$42(NM)
+10 Sessions",,"How 
+Boon Pang"
+,"Line Dance (Intermediate) 
+",TBC,TBC,"3.30 pm to 
+5.00 pm","Level 4,
+Dance Studio 408",TBC,"$60(M)/$70(NM)
+8 Sessions","
+
+Participant should be in sneakers or sports shoes
+",Jenny Tan Gek Keung
+,"Line Dance (Elementary)
+",TBC,TBC,"8.00 pm to 
+9.00 pm",,TBC,"$50(M)/$60(NM)
+8 Sessions"
+,Lowrey Piano *Existing Student Only*,23/9/26,25/11/26,5.00 pm to 8.30 pm,"Level 4,
+Music Room 402",NA,New student pls call Lowrey Music at 67833611,"30mins - 45mins per session
+10 Sessions per term",Lowrey Music School
+,Phonics and Reading (Age 4 to 6 years old),16/9/26,4/11/26,5.15pm to 6.15pm,"Level 4,
+Activity Room 405",C027228619,"$142(M)/$152(NM)
+8 Sessions","New and Existing student all are Welcome!
+Registration is on a first-come, first-served basis
+$12.90 for 1 Jumbo Phonics Book (New Student Only)",Seraphina Kayla
+,Taijiquan,9/9/26,9/12/26,"8.00 pm to 
+9.30 pm","Level 1,
+Atrium, Open area",C027240560 ,"$50 (M)/$60 (NM)
+12 Sessions","Attire: Tshirt, pants and shoes",Lee Siew Kim
+,TCM Gua Sha For Health,30/9/26,30/9/26,7:30pm to 9:30pm,"Level 4,
+Activity Room 406",C027230692,"
+$25 (M)/$30 (NM)
+","Lessons will be conducted in Mandarin
+1 sessions 
+Min: 10 pax, Max: 25 pax
+Material fee: $10 (payable to trainer)
+$10 for Gua Sha plate & notes payable to trainer
+Gua Sha for health treatment for headache and neck pain",Liew Nam Yick
+,TCM Gua Sha For Health,25/11/26,25/11/26,7:30pm to 9:30pm,"Level 4,
+Activity Room 406",C027243972,"
+$25 (M)/$30 (NM)
+","Lessons will be conducted in Mandarin
+1 sessions 
+Min: 10 pax, Max: 25 pax
+Material fee: $10 (payable to trainer)
+$10 for Gua Sha plate & notes payable to trainer
+Gua Sha for health treatment for headache and neck pain",Liew Nam Yick
+,TCM Acupuncture Point Massage ,14/10/26,14/10/26,7:30pm to 9:30pm,"Level 4,
+Activity Room 406",C027245290,"
+$25 (M)/$30 (NM)
+","Lessons will be conducted in Mandarin
+1 sessions 
+Min: 10 pax, Max: 25 pax
+Material fee: $5 (payable to trainer)
+Acupuncture Point Massage treatment for frozen shoulder and leg cramp",Liew Nam Yick
+,Thursday
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,Aikido,13/7/23,14/9/23,"7.30 pm to 
+9.00 pm","Level 4,
+Multi-Purpose Hall",C027023793,"$116(M)/$123 (NM)
+10 Sessions","For age 6 years old and above
+Uniform fee payable to trainer",Adrian Tan Wee Meng
+,Zumba Fitness (HealthierSG)             ,TBC,TBC,"10.00 am to
+11.00 am","Level 4,
+Dance Studio 408",,"$50(M)/$55(NM)
+4 Sessions",,Chua Sock Ling
+,Health Qigong (HealthierSG),11/5/26,24/12/26,9.00am - 10:30am,"Fernvale CC Level 5 
+(Open Area)",C027244361,"$60(M)/$65(NM)
+8 Sessions",,Mdm Chua
+,Lowrey Piano *Existing Student Only*,1/11/26,24/1/27,4.30pm - 8.30pm,"Level 4,
+Music Room 402",NA,New student pls call Lowrey Music at 67833611,"30mins - 45mins per session
+10 Sessions per term",Lowrey Music School
+,"Ballet (Children) - Grade 1
+",TBC,TBC,TBC,"Level 4,
+Dance Studio 407",C027226852,"$120(M)/$130(NM)
+8 Sessions",Uniform fee payable to trainer,Dance Runway
+,"Ballet (Children) - Grade 2
+",12/11/26,14/1/27,6.15pm - 7.15pm,"Level 4,
+Dance Studio 407",C027243993,"$130(M)/$140(NM)
+8 Sessions","NO LESSONS ON 24/12/2026 & 31/12/2026
+Uniform fee payable to trainer",Dance Runway
+,"Ballet (Children) - Grade 3
+",12/11/26,14/1/27,5:00pm - 6:00pm,"Level 4,
+Dance Studio 407",C027244034,"$140(M)/$150(NM)
+8 Sessions","NO LESSONS ON 24/12/2026 & 31/12/2026
+Uniform fee payable to trainer",Dance Runway
+,"Ballet (Children) - Grade 4
+",12/11/26,14/1/27,7.30pm - 8.45pm,"Level 4,
+Dance Studio 407",C027244040,"$150(M)/$160(NM)
+8 Sessions","NO LESSONS ON 24/12/2026 & 31/12/2026
+Uniform fee payable to trainer",Dance Runway
+,Aikido,20/8/26,29/10/26,"7.30 pm -
+9.00 pm","Level 4,
+Multi-Purpose Hall",C027234584,"$116(M)/$123 (NM)
+10 Sessions","For age 6 years old and above
+Uniform fee payable to trainer
+
+NO CLASS ON 24/9/26 (TRAINER AWAY)",Adrian Tan Wee Meng
+,3G Abacus & Mental Arithmetic for Children (Preparatory to Post Advance),24/9/26,17/12/26,"7.30 pm to 
+9.00 pm","Level 4,
+Activity Room 405",C027240521,"$180(M)/$190(NM)
+10 Sessions","NO LESSONS ON 8/10/2026, 15/10/2026 & 22/10/2026
+starter kit $40 (includes an abacus and a book) 
+subsequent book $12
+Material fees to pay directly to trainer during the 1st lesson.",UE 3G Abacus Pte Ltd 
+,Zumba Fitness (HealthierSG)             ,TBC,TBC,"10.00 am to
+11.00 am","Level 4,
+Dance Studio 408",TBC,"$50(M)/$55(NM)
+4 Sessions","Bring own water bottle & towel
+Participant should be in sneakers or sports shoes.",Chua Sock Ling
+,Friday
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,Piloxing ,TBC,TBC,8.45am to 9.45am,"Level 4,
+Dance Studio 408",TBC,"$100(M)/$110(NM)
+8 Sessions","Bring own water bottle & towel
+",Betty Lim
+,Cardio Dance,20/11/26,18/12/26,"10.00 am to 
+11.00 am","Level 4,
+Dance Studio 408",C027247032,"$68.75(M)/$78.75(NM)
+5 Sessions","New and Existing student all are Welcome!
+Registration is on a first-come, first-served basis",Cindy Yeap
+,Line Dance (Elementary - Healthier SG),29/12/24,23/2/24,12.30pm - 2.00pm,"Level 4,
+Dance Studio 408",C027054180,"$65(M)/$75(NM)
+8 Sessions","Bring own water bottle & towel
+Participant should be in sneakers or sports shoes.",Allen Koh 
+,"Line Dance (Elementary - Healthier SG)
+",TBC,TBC,1.00pm - 2.30pm,"Level 4,
+Dance Studio 408",C027233002,"$65(M)/$75(NM)
+8 Sessions","There will be a break in classes after 14 August 2026 and will resume back in October. SMS reminder will be sent to participants on when to resume.
+
+Bring own water bottle & towel Participant should be in sneakers or sports shoes.",Allen Koh 
+,Lowrey Piano *Existing Student Only*,11/9/26,13/11/26,2.15 pm - 9.00pm,"Level 4,
+Music Room 402",NA,New student pls call Lowrey Music at 67833611,"30mins - 45mins per session
+10 Sessions per term",Lowrey Music School
+,Phonics and Reading (Age 4 to 6 years old),21/8/26,10/9/26,"5.30 pm to 
+6.30 pm","Level 4,
+Activity Room 405",C027237070,"$142(M)/$152(NM)
+8 Sessions","New and Existing student all are Welcome!
+Registration is on a first-come, first-served basis
+$12.90 for 1 Jumbo Phonics Book (New Student Only)",Seraphina Kayla
+,"Ballet (Children) - Grade 1
+**COACHING CLASS FOR EXISTING STUDENTS 
+TAKING EXAMS ONLY**",TBC,TBC,"6.30 pm to 
+7.30 pm","Level 4,
+Dance Studio 407",TBC,"$75 (M)/$85(NM)
+5 Sessions","
+For Existing Students Taking Exams ",Dance Runway
+,Hatha Yoga (Elementary),20/11/26,29/11/26,"8.00 pm to
+9.00 pm","Level 4,
+Dance Studio 407",C027247034,"$90(M)/$100(NM)
+8 Sessions","No class on 25/12, 1/1 and 8/1
+New and Existing student all are Welcome!
+Registration is on a first-come, first-served basis
+Please bring your own Yoga mat",Derek Cheong
+,"Ballet (Children) - Grade 1
+**(Coaching Class)**",23/5/25,13/6/25,5:00pm - 6:00pm,"Level 4,
+Dance Studio 407",C027153199,"$60(M)/$65(NM)
+4 Sessions",This is COACHING class for existing students taking exams ,Ms Koh 
+,"Ballet (Children) - Grade 2
+**(Coaching Class)**",23/5/25,13/6/25,6:15pm - 7:15pm,"Level 4,
+Dance Studio 407",C027153196,"$65(M)/$70(NM)
+4 Sessions",This is COACHING class for existing students taking exams ,Ms Koh 
+,"Fun with Guitar - Elementary
+*Junior
+*For aged 6 - 15 years only",28/8/26,16/10/26,7:00pm - 8:00pm,"Level 4, Music Room 402",C027238452,"$160(M)/$170(NM)
+8 Sessions","
+For aged 6 - 15 years only
+Need to bring own guitar
+For participants without guitar can order a student guitar starter kit to be collected on the 1st lesson from the trainer.
+For more information and enquiries, please contact Mr Leong: 9749 1851",Guitar Academy Asia
+,"Fun with Guitar - Elementary
+*Teens/Adults
+*For aged 16 & above",28/8/26,16/10/26,8:00pm - 9:00pm,"Level 4, Music Room 402",C027238500,"$160(M)/$170(NM)
+8 Sessions","
+For aged 16 & above
+Need to bring own guitar
+For participants without guitar can order a student guitar starter kit to be collected on the 1st lesson from the trainer.
+For more information and enquiries,please contact Mr Leong: 9749 1851",Guitar Academy Asia
+,Thai Language,TBC,TBC,7:00pm - 9:00pm,"Level 4, Activity Room 405",TBC,"$160(M)/$170(NM)
+9 Sessions",,Ms Jiwacharoen Kesanee
+,"Ballet (Children) - Grade 2
+(Coaching)",TBC,TBC,5:00pm to 6:00pm,"Level 4,
+Dance Studio 407",TBC,"$65(M)/$70(NM)
+4 Sessions","
+
+This is COACHING class (Ballet-Grade 2) for existing students taking exams
+",Dance Runway
+,"Ballet (Children) - Grade 3
+(Coaching)",TBC,TBC,6:15pm to 7:15pm,"Level 4,
+Dance Studio 407",TBC,"$70(M)/$75(NM)
+4 Sessions","
+
+This is COACHING class (Ballet-Grade 3) for existing students taking exams
+",Dance Runway
+,"Zumba® STEP (HealthierSG)
+NEW ",TBC,TBC,7:00pm - 8:00pm,"Level 4,
+Dance Studio 408",TBC,"$90(M)/$94(NM)
+4 Sessions",This class is suitable for adults to seniors.,Ms Jeslyn Law
+,"POUND® (HealthierSG)
+NEW",TBC,TBC,8:15pm - 9:15pm,"Level 4,
+Dance Studio 408",TBC,"$18(M)/$20(NM)
+1 Session",This class is suitable for adults to seniors.,Ms Jeslyn Law
+,Saturday
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,"3G Abacus Class in English -
+ Elem 1
+",29/8/26,7/11/26,"9.30 am to 
+11.00 am ","Level 4,
+Activity Room 405",C027238405,"$180(M)/$190(NM)
+10 Sessions","NO LESSON ON 24/10/2026
+Starter kit $40, subsequent book $12 
+",UE 3G Abacus Pte Ltd
+,"3G Abacus Class in English -
+ Elem 1
+",29/8/26,7/11/26,"11.30 am to
+1.00 pm",,"
+C027238411","$180(M)/$190(NM)
+10 Sessions"
+,"STEM Innovators 
+(For Age 7-9 Years Old)",24/6/23,12/8/23,"1.30 pm to
+3.00 pm","Level 4,
+Activity Room 405",C027021330,"$192(M)/$200(NM)
+8 Sessions","For age 7 to 9 years old
+Material Fee: $28 payable to trainer on the 1st lesson
+NO LESSONS ON 27/05/2023, 10/06/2023, 17/06/2023
+",Genius X Play
+,Junior STEM Explorers,24/6/23,12/8/23,"3.15 pm to
+4.45 pm",,C027021326,"$192(M)/$200(NM)
+8 Sessions","For age 5 to 7 years old 
+Material Fee: $28 payable to trainer on the 1st lesson
+",Genius X Play
+,"Elementary Korean Language 
+(Elementary Stage 1)
+",TBC,TBC,"5.00 pm to
+7.00 pm","Level 4,
+Activity Room 405",TBC,"$160(M)/$170(NM)
+8 Sessions",Material Fees: $15 per pax (payable to trainer directly on the 1st sesson),Cho Young Mi
+,"Elementary Korean Language 
+(Elementary Stage 2)
+",TBC,TBC,"7.30 pm to
+9.30 pm","Level 4,
+Activity Room 405",TBC,"$160(M)/$170(NM)
+8 Sessions",Material Fees: $15 per pax (payable to trainer directly on the 1st sesson)
+,"Elementary Korean Language 
+(Intermediate Stage 1)
+",TBC,TBC,"5.00 pm to
+7.00 pm","Level 4,
+Activity Room 405",C027161440," $200 (M)/$210 (NM)
+10 Sessions","Requirements to enroll for Korean language Intermediate (Stage 1)
+- Must be able to read simple sentences in Korean.
+    AND/OR
+- complete Elementary 1 & 2 
+
+"
+,Crochet Art,20/5/23,15/7/23,"11.30 am to 
+1.30 pm",,C027001922,"$80 (M)/$90(NM)
+8 Sessions"
+,"Elementary Korean Language (Stage 2)
+",17/9/24,12/5/23,"6.45 pm to
+8.15 pm",,C027032079,"$160(M)/$170(NM)
+10 Sessions"
+,Junior STEM Explorers (For Age 5-7 Years Old),9/9/23,28/10/23,1.30 pm to 3.00 pm,,C027032874,"$192(M)/$200(NM)
+8 Sessions","For 5 to 7 years old
+Material Fee: $28 per 8 sessions (payable to trainer on 1st lesson)",Genius X Play
+,STEM Innovators (For Age 7-9 Years Old),9/9/23,28/10/23,3.15 pm to 4.45 pm,,C027032879,"$192(M)/$200(NM)
+8 Sessions","For 7 to 9 years old
+Material Fee: $28 per 8 sessions (payable to trainer on 1st lesson)",Genius X Play
+,Crochet Art,10/10/26,21/11/26,"11.00 am to
+1.00 pm","Level 4,
+Activity Room 406",C027240220,"$80(M)/$90(NM)
+8 Sessions","NO CLASS ON 8/8/2026, 5/9/2026, 12/9/2026 
+(TRAINER AWAY) and 15/8/2026 (CC event)
+Material Fees: $12 per pax 
+(payable to trainer directly on the 1st sesson)",Janet Chong
+,Yoga Core,21/11/26,30/1/27,"9.30 am to 
+10.30 am ","Level 4,
+Dance Studio 407",C027247035,"$90(M)/$100(NM)
+8 Sessions","No class on 26/12, 2/1 and 9/1
+New and Existing student all are Welcome!
+Registration is on a first-come, first-served basis
+Please bring your own Yoga mat",Derek Cheong
+,"Ballet (Children) - Pre-Primary
+(Foundation Class)",21/11/26,9/1/27,"10.45 am to
+11.30 am","Level 4,
+Dance Studio 407",C027244069,"$100(M)/$110(NM)
+8 Sessions","
+Foundation class for aged 4 years old. 
+Uniform fee payable to trainer",Dance Runway
+,"Ballet (Children) - Pre-Primary
+",21/11/26,9/1/27,"11.45 am to
+12.30 pm","Level 4,
+Dance Studio 407","
+
+C027244085
+
+","$100(M)/$110(NM)
+8 Sessions","
+THIS IS AN EXISTING CLASS FOR EXISTING STUDENTS. KINDLY ALLOW INSTRUCTOR TO ASSESS BEFORE SIGN UP.
+For age 4 years old
+Uniform fee payable to trainer
+"
+,"Ballet (Children) - Pre-Primary
+",21/11/26,9/1/27,"4.15 pm to 
+5.00 pm","Level 4,
+Dance Studio 407","
+C027244108
+","$100(M)/$110(NM)
+8 Sessions","
+THIS IS AN EXISTING CLASS FOR EXISTING STUDENTS. KINDLY ALLOW INSTRUCTOR TO ASSESS BEFORE SIGN UP.
+For age 4 years old - 5 years old
+Uniform fee payable to trainer
+"
+,"Ballet (Children) - Pre-Primary
+",21/11/26,9/1/27,"12.45 pm to 
+1.30 pm","Level 4,
+Dance Studio 407",C027244091,"$100(M)/$110(NM)
+8 Sessions","
+THIS IS AN EXISTING CLASS FOR EXISTING STUDENTS. KINDLY ALLOW INSTRUCTOR TO ASSESS BEFORE SIGN UP.
+For age 4 years old - 5 years old
+Uniform fee payable to trainer
+"
+,"Ballet (Children) - Grade 1
+",21/11/26,9/1/27,"1.45 pm to 
+2.45 pm","Level 4,
+Dance Studio 407",C027244098,"$120(M)/$130(NM)
+8 Sessions","
+THIS IS AN EXISTING CLASS FOR EXISTING STUDENTS. KINDLY ALLOW INSTRUCTOR TO ASSESS BEFORE SIGN UP.
+For age 6 years old
+Uniform fee payable to trainer
+"
+,"Ballet (Children) - Primary
+",TBC,TBC,4:45pm to 5:30pm,"Level 4,
+Dance Studio 408","
+C027153189","$55(M)/$60(NM)
+4 Sessions","NO LESSON ON 7/6/2025
+
+This is a COACHING class for current students taking exams. 
+"
+,"Ballet (Children) - Grade 2
+",21/11/26,9/1/27,"
+3:00pm to 
+4:00pm 
+","Level 4,
+Dance Studio 407",C027244104,"$130(M)/$140(NM)
+8 Sessions","
+THIS IS AN EXISTING CLASS FOR EXISTING STUDENTS. KINDLY ALLOW INSTRUCTOR TO ASSESS BEFORE SIGN UP.
+This class is for existing students promoting from Primary Ballet 
+Uniform fee payable to trainer
+For children aged 7 years old"
+,"Ballet (Children) - Grade 1
+(Coaching Class)",TBC,TBC,"
+4:45pm to 
+5:45pm 
+","Level 4,
+Dance Studio 407",TBC,"$30(M)/$35(NM)
+2 Sessions","
+
+This is COACHING class (Ballet-Grade 1) for existing students taking exams  "
+,"Kpop Dance (Children)
+(for new students - BEGINNER)",21/11/26,9/1/27,"5.45 pm to 
+6.45 pm","Level 4,
+Dance Studio 407",C027244110,"$130(M)/$140(NM)
+8 Sessions","
+FOR BEGINNERS 
+For children aged 6 to 12 years old
+Participants are advised to put on covered shoes"
+,"Kpop Dance (Children)
+(for existing students - LEVEL 2)",21/11/26,9/1/27,"7.00 pm to 
+8.00 pm","Level 4,
+Dance Studio 407",C027244114,"$130(M)/$140(NM)
+8 Sessions","
+FOR EXISITING STUDENTS (LEVEL 2)
+For children aged 6 to 12 years old
+Participants are advised to put on covered shoes"
+,Rebound Fit Boots Workout,6/6/26,15/8/26,"10.30 am to
+11.30 am","Level 4,
+Dance Studio 408",C027224132,"$180(M)/$188(NM)
+8 Sessions","NO LESSONS ON 27/6/2026, 4/7/2026 & 8/8/2026
+Participants are required to bring their own long socks, towel and water bottle.
+",Ms Law
+,"Rebound Fit Boots Workout (Kids)
+For age 7 to 12 years old",6/6/26,15/8/26,"11.30 am to 
+12.30 pm",,C027224122,"$130(M)/$138(NM)
+8 Sessions
+"
+,"Violin - Group Learning - Beginners
+*Level 200* *Existing Student ONLY*",19/9/2026,21/11/2026,"6.00 pm to 
+7.00 pm","Level 4,
+Music Room 402",C027225593,"$350 (M) /$360 (NM)
+10 Sessions
+","Level 200 - Exicting Student Only
+Age Group: K1 to Primary 3 ONLY (in 2026)
+Misc: Rental of Violin of $50 per term (with $200 refundable security deposit) – Payable to Trainer",Pacifica Music Academy
+,"Violin - Group Learning - Beginners
+*Level 100* *Existing Student ONLY*",19/9/2026,21/11/2026,7.00 pm to 8.00 pm,"Level 4,
+Music Room 402",C027225595,"$240 (M) /$250 (NM)
+8 Sessions
+","Level 100 (New Student please WhatsApp 86838903
+Age Group: K1 to Primary 3 ONLY (in 2026)
+Misc: Rental of Violin of $50 per term (with $200 refundable security depo) - Payable to Trainer",Pacifica Music Academy
+,"Piloxing 
+",TBC,TBC,3.00 pm to 4.00 pm,"Level 4,
+Dance Studio 408",TBC,"$100(M)/$110(NM)
+8 Sessions",,Betty Lim
+,Zumba Fitness,TBC,TBC,"1.00 pm to
+2.00 pm","Level 4,
+Dance Studio 408",TBC,"$50(M)/$55(NM)
+4 Sessions","Bring along own water bottle and towel.
+",Abdul Ghani 
+,"Japanese for Travellers
+(NEW CLASS)",TBC,TBC,3:30pm - 5:30pm,"Level 4, Activity Room 406",TBC,"$120(M)/$130(NM)
+5 Sessions",,Ms Makiko
+,Sunday
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,"Taekwondo 
+(Beginner & White Belt)",12/3/23,30/4/23,"6.00 pm to
+7.00 pm",,C026992883,"$60(M)/$70(NM)
+8 Sessions","
+"
+,"Crochet Art for Adult
+*NEW TERM ",18/2/24,10/3/24,5:45pm - 7.15pm,"Level 4,
+Activity Room 406",C027058691,"$70 (M) / $75 (NM)
+Material fee: $10 payable to trainer) ","
+Adult class (for beginners)
+Starter kit for beginner:
+1 ball of yarn 
+1 hook
+stitch marker
+needle
+",Ms Tan 
+,"Basic Knitting 
+",31/3/24,28/4/24,7:30pm - 9:00pm,"Level 4,
+Activity Room 406",C027072644,"$70 (M) / $75 (NM)
+Material fee: $15 payable to trainer) ","Adult Class (for beginners)
+Materials: (Starter kit for beginner)
+1 ball of yarn
+1 size circular needle
+1 crochet hook
+stitch marker
+needle
+caps
+",Ms Tan 
+
+,"
+Crochet & Knitting (Stage I)
+",11/10/26,29/11/26,7:00pm - 8:30pm,"Level 4,
+Activity Room 406",C027247275,"$98 (M) / $108 (NM)
+Material fee: $10/$15 payable to trainer) ","NO LESSONS ON 25/10/2026 & 8/11/2026
+Adult class 
+Materials: 
+Crochet (Starter kit for beginner@$10)
+1 ball of yarn
+1 hook
+stitch marker
+needle
+Knitting (Starter kit for beginner@$15)
+1 ball of yarn
+1 size circular needle
+1 crochet hook
+stitch marker
+needle
+caps",Ms Tan
+,"Crochet & Knitting (Stage I)
+",TBC,TBC,5:30pm - 7:00pm,,TBC
+,Pre-Primary Chinese ,4/10/26,1/11/26,"10.00 am to 
+11.30 am","Level 4,
+Activity Room 406",C027245877,"$100(M)/$110(NM)
+4 Sessions","NO LESSON ON 25/10/2026
+Material fee: $30 (half yearly) 
+                      (Pay directly to trainer)",Success Educational Centre Pte Ltd
+,"Chinese Language 
+for Primary 1",4/10/26,1/11/26,"11.30 am to
+1.00 pm",,C027245883,"$100(M)/$110(NM)
+4 Sessions"
+,"Chinese Language 
+for Primary 2",4/10/26,1/11/26,1.00pm to 2.30pm,,C027245885
+,"Chinese Language 
+for Primary 3",4/10/26,1/11/26,"2.30 pm to
+4.00 pm",,C027245888,"$120(M)/$130(NM)
+4 Sessions"
+,"Chinese Language 
+for Primary 4",4/10/26,1/11/26,,,C027245889
+,"Chinese Language 
+for Primary 5",4/10/26,1/11/26,4.00pm to 5.30pm,,C027245891,"$120(M)/$130(NM)
+4 Sessions"
+,"Chinese Language 
+for Primary 6",4/10/26,1/11/26,,,C027245893,"$140(M)/$150(NM)
+4 Sessions"
+,Classical Yoga (HealthierSG),28/1/24,24/3/24,"7.45 am to
+8.45 am","Level 4,
+Dance Studio 407",C027058675,"$96(M)/$105(NM)
+8 Sessions",Bring along yoga mat,Christine Lee
+,Children's Art *New Class*,5/7/26,30/8/26,2.00pm to 3.00pm,"Level 4, Activity Room 405",C027218937,"$80(M)/ $90(NM)
+8 sessions","No class on 9/8 and 16/8
+For Children aged 5 to 12 years old. 
+Participants to bring for every lesson - drawing block, pencils, eraser, oil pastel 24 colours, brush, apron (if needed), water colour cake and small container for water.",Yeo Chin Hua
+,Classical Yoga (HealthierSG),TBC,TBC,"8.00 am to
+9.00 am","Level 4,
+Dance Studio 407",C027218977,"$96(M)/$105(NM)
+8 Sessions","
+
+Bring along yoga mat and yoga blocks (1 pair)
+",Christine Lee
+,"Fun Gymnastics For Kids - Girl 
+Existing Class
+",10/3/24,28/4/24,"8.45 am to
+10.15 am","Level 4, 
+Multi-Purpose Hall",C027065376 ,"$320(M) /$330(NM)
+8 Sessions",For age 6 to 10 years old,Funyard
+,Zumba Fitness (HealthierSG) ,7/4/24,28/4/24,"10.15 am to 
+11.15 am","Level 4,
+Dance Studio 408",C027071771,"$50(M)/$55(NM)
+4 Sessions",,Chua Sock Ling
+,Hip Hop Dance (Children),26/7/26,16/8/26,"11.30 am to 
+12.30 pm","Level 4,
+Dance Studio 408",C027232115,"$66 (M) / $69.75 (NM)
+3 Sessions","NO LESSONS ON 9/8/2026 (PH)
+For age 7 to 12 years old
+",Chameleo Kidz Pte Ltd
+,Lowrey Piano ,16/8/26,18/10/26,4.30pm - 8.30pm,"Level 4,
+Music Room 402",NA,"*For existing student*
+New student pls call Lowrey Music at 67833611","30mins - 45mins per session
+10 Sessions per term",Lowrey Music School
+,Karate ,TBC,TBC,"6.30 pm to 
+7.30 pm","Level 4,
+Dance Studio 407",TBC,"$100(M)/$110 (NM)
+8 Sessions","New and Existing student all are Welcome!
+Registration is on a first-come, first-served basis
+Materials Fee: $60 for the uniform
+Age: Min 5 years and above (Adult are welcome)",Seah Kwang Soon
+,Karate ,TBC,TBC,"7.45 pm to 
+8.45 pm","Level 4,
+Dance Studio 407",TBC,"$100(M)/$110 (NM)
+8 Sessions",,Seah Kwang Soon
+,Taekwondo (Singapore Taekwondo Federation),4/10/26,6/12/26,"6.00 pm to 
+7.00 pm","Level 4, 
+Multi-purpose Hall",C027245815,"$60(M)/$70 (NM)
+8 Sessions","NO LESSON ON 25/10/2026 & 8/11/2026 (PH)
+PLEASE NOTE:
+This class is suitable for beginners and students holding to white belt
+Material fee of $130 for uniform and kicking pad to be paid directly to the trainer.
+",Mr Yuen
+,Taekwondo (Singapore Taekwondo Federation),4/10/26,6/12/26,7.00pm - 8.00pm,"Level 4, Multi-purpose Hall",C027245811,"$60(M)/$70 (NM)
+8 Sessions","NO LESSON ON 25/10/2026 & 8/11/2026 (PH)
+Please note:
+This class is for existing students - Advanced level and above",Mr Yuen
+,Zumba Fitness (HealthierSG)             ,TBC,TBC,"10.15 am to
+11.15 am","Level 4,
+Dance Studio 408",TBC,"$50(M)/$55(NM)
+4 Sessions",,Chua Sock Ling
+,Bollywood Hip Hop Dance,5/5/24,23/6/24,"4.30 pm to
+5.30 pm",,C027041668,"$180(M)/$190 (NM)
+8 Sessions",For Age 8 to 16 years old 
+,Culinary Workshop in Fernvale CC
+,Thursday
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,Cakemaking ,5/5/23,5/5/23,"1.00pm to 
+4.00pm","Level 4,
+Culinary Studio 
+409",C027003967,"$48 (M)/$58 (NM)
+","Ingredient Fee: $10/pax (pay directly to trainer on 1st lesson)
+Receipes:
+(a)          Lemon Meringue Pies
+(b)          Guava & Pear Pies",Allan Teoh
+
+,Dianxin (Elementary),01.07.23,22.07.23,2.30pm - 5.30pm,"Level 4, Culinary Studio",C027014595,"$110(M)/$120 (NM)
+4 Sessions","Ingredient Fee: $15 (payable to trainer on 1st lesson)
+Participants to bring containers to bring back the food after class.",Tan Soh Hoon
+,Cakemaking,8/6/23,8/6/23,"11:30am to
+1:30pm","Level 4, Culinary Studio",C027005712,$30 (M) / $40 (NM),"This class is open to children aged 6 and above
+Min: 6pax. Max: 16pax
+Recipe:
+Brownies Cupcake 	布朗尼杯子蛋糕",Tan Soh Hoon
+,Saturday
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,Dianxin (Elementary),8/4/23,6/5/23,"2.30pm to 
+5.30pm","Level 4,
+Culinary Studio 
+409",C027003230 ,"$110(M) / $120(NM)
+4 Sessions
+","Ingredient Fee: $15 (pay directly to trainer on 1st lesson)
+All ingredients use are halal certified
+Refer to onepa.gov.sg for more information",Tan Soh Hoon
+,"Dianxin Making Workshop
+Nonya dumpling   ",13/5/23,13/5/23,"2.30pm to 
+5.30pm","Level 4,
+Culinary Studio 
+409",C027003277," $40 (M)/$50 (NM)
+",,Tan Soh Hoon
+,,01/07/24,22/07/24
+,,01/07/25,22/07/25
+,,01/07/26,22/07/26
+,,01/07/27,22/07/27
+,,01/07/28,22/07/28
+,,01/07/29,22/07/29
+,,01/07/30,22/07/30
+,,01/07/31,22/07/31
+,,01/07/32,22/07/32
+,,01/07/33,22/07/33
+,,01/07/34,22/07/34
+,,01/07/35,22/07/35
+,Culinary Courses
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,Cakemaking (Mooncake Making),5/8/23,19/8/23,2.30pm - 5.30pm,"Level 4, Culinary Studio",C027024736,"$110(M)/$120 (NM)
+3 Sessions","Ingredient Fee: $10 - $15 per session (payable to trainer)
+Participants to bring containers to bring back the food after class.",Tan Soh Hoon
+,"Cakemaking
+(Agar Agar Mooncake Making)",26/08/23,09/09/23,2.30pm - 5.30pm,"Level 4, Culinary Studio",C027024763,"$110(M)/$120 (NM)
+3 Sessions","Ingredient Fee: $10 - $15 per session (payable to trainer)
+Participants to bring containers to bring back the food after class.",Tan Soh Hoon
+,"Mooncake Making Workshop
+(Holiday Workshop)",07/09/23,07/09/23,11:30am - 1:30pm ,"Level 4, Culinary Studio",C027024783,"$30(M)/$40 (NM)
+1 Session","Participants to bring containers to bring back the food after class.
+Recipe: Snowskin mooncake making 饼皮月饼制作 
+",Tan Soh Hoon
+,"Mooncake Making Workshop 
+(Holiday Workshop)",07/09/23,07/09/23,2:00pm - 4:00pm ,"Level 4, Culinary Studio",C027024796,"$30(M)/$40 (NM)
+1 Session","Participants to bring containers to bring back the food after class.
+Recipe: Baked mooncake modelling 烘皮月饼造型制作 ",Tan Soh Hoon
+,Variety Baking Workshop For Adults,18/4/24,18/4/24,2.30pm - 5.30pm,"Level 4, Culinary Studio",C027064168,"$40 (M)/$50 (NM)
+1 Session
+","
+Ingredient Fee: $10-$15 payable to trainer 
+all ingredients use are Halal Certified
+Participants need to bring own containers to bring back the kebabs after cooking 
+
+Recipe:
+Mushroom chicken pie 	蘑菇鸡肉派 
+Cheese pie 	芝士派 
+Fruit pie 	水果派 
+",Tan Soh Hoon
+,Nonya Kueh Making Workshop,25/4/24,25/4/24,2.30pm - 5.30pm,"Level 4, Culinary Studio",C027064172,"$40 (M)/$50 (NM)
+1 Session
+","
+Nonya Kueh Making Workshop
+Ingredient Fee: $10-$15 payable to trainer
+All ingredients use are Halal Certified
+Participants need to bring own containers to bring back the kueh after making.
+
+Recipe: 
+Amban 粿安纹
+•	Original  原味
+•	Sago ubi  沙谷份
+•	Hue kueh  绿豆	 
+",Tan Soh Hoon
+,Nonya Cooking (Elementary),2/3/24,23/3/24,2.30pm - 5.30pm,"Level 4, Culinary Studio",C027064174,"$120 (M)/$130 (NM)
+4 Sessions
+","Ingredient Fee: $10-$15 per session payable to trainer
+Ingredients use are Halal Certified
+Participants need to bring own containers to bring back the food after cooking
+
+Recipe: 
+Nonya otak 	娘惹乌达 
+Dried curry chicken 	干咖喱鸡 
+Ayam siam 	逻罗鸡 
+Turmeric rice 	黄姜饭 
+Chicken ngoh hiang 	鸡肉五香 
+Achar 	阿楂 
+Sambal udang 	三岜虾 
+Nonya lotong 	娘惹隆冬 
+Buah kulauk ayam 	黑果鸡 
+Mixed vegetables curry 	什菜咖喱 
+Curry fish head 	鱼头咖喱 
+
+",Tan Soh Hoon
+,Breadmaking,13/4/24,27/4/24,2.30pm - 5.30pm,"Level 4, Culinary Studio",C027064178,"$110 (M)/$120 (NM)
+3 Sessions
+","
+Ingredient Fee: $10-$15 per session payable to trainer
+All ingredients use are Halal Certified
+Participants need to bring own containers to bring back the bread after making.
+
+Recipe: 
+Honey bread 	蜜糖面包 
+Chicken floss bread 	鸡肉丝面包 
+Durian buns with crunchy toppings 	脆皮榴梿奶油面包 
+Mango custard buns 	芒果卡仕达面包 
+Mexico red bean buns 	墨西哥红豆面包 
+Cranberry bagel 	蔓越莓贝果 ",Tan Soh Hoon
+,Home Cooking / Variety Cooking,29/6/2024,29/6/2024,2:30pm - 5:30pm,"Level 4, Culinary Studio",C027086517,$50 (M)/$60 (NM),"Ingredient Fee: $10-$15
+
+Recipe:
+Grilled making 烧烤制作
+•	Chilli sauce 辣椒酱
+•	Fish 鱼
+•	Sotong 苏东
+•	Prawn 虾
+•	sauce  沾酱	 
+
+",Tan Soh Hoon
+,Variety Cooking Workshop for Adults,13/6/2025,13/6/2025,2:00pm - 5:00pm,"Level 4, Culinary Studio",C027147490,$45 (M)/$55 (NM),"Cooking Workshop (Hands On workshop working in pairs) 
+For Adults 
+Min: 8 pax, Max: 16 pax  
+Fee: $45 (M) / $55 (NM) 
+Ingredient Fee: $10/pax per session payable to trainer directly 
+Ingredients use is Halal Certified
+Participants need to bring own containers to bring back the food after cooking. 
+Recipe:
+FISH HEAD CURRY WITH STEAMED CHICKEN IN MUSHROOMS
+Trainer: Mr Allan Teoh
+",Mr Teoh
+,Variety Cooking Workshop for Adults,20/6/2025,20/6/2025,2:00pm - 5:00pm,"Level 4, Culinary Studio",C027147518,$45 (M)/$55 (NM),"Cooking Workshop (Hands On workshop working in pairs) 
+For Adults 
+Min: 8 pax, Max: 16 pax  
+Fee: $45 (M) / $55 (NM) 
+Ingredient Fee: $10/pax per session payable to trainer directly 
+Ingredients use is Halal Certified
+Participants need to bring own containers to bring back the food after cooking. 
+Recipe:
+TRADITIONAL CURRY PUFFS C/W CHICKEN AND SARDINE FILLINGS
+Trainer: Mr Allan Teoh
+",Mr Teoh
+,Breadmaking,TBC,TBC,2:30pm - 5:30pm,"Level 4, Culinary Studio",TBC,$120 (M)/$130 (NM),,Mdm Tan
+,Dianxin ,24/9/2026,24/9/2026,2:00pm - 4:00pm,"Level 4, Culinary Studio",C027241516,$50 (M)/$60 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session 
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $10/$15 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipes:
+Golden pillow bread with curry chicken	金枕头咖喱面包        Mini boluo chicken char siew bun	迷你菠萝鸡肉叉烧包
+Sweet bun with chicken floss	面包鸡肉松
+
+
+",Mdm Tan
+,Dianxin ,9/7/26,9/7/26,2:00pm - 5:00pm,"Level 4, Culinary Studio",C027228368,$50 (M)/$60 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session
+Min: 6 pax  Max: 16 pax
+Ingredients Fee: $10/$15 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipes
+Hokkien mee whole set (chicken meat)	福建面（鸡肉）
+",Mdm Tan
+,Dianxin ,17/10/2026,31/10/2026,2:00pm - 4:00pm,"Level 4, Culinary Studio",C027242188,$120 (M)/$130 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session 
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $10/$15 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipes:Char siew soh        蜜汁叉烧酥       Chicken in pocket        纸包鸡      Chicken siew mai        干蒸烧卖
+Lor mai kai        糯米鸡    Radish cake        腊味萝卜糕     Steamed chicken feet        豆豉蒸鸡脚
+Banana roll        香蕉卷    Steamed yam cake        蒸芋头糕   Fried long life noodles        炒寿面
+Mango pudding        芒果布丁    osmanthus cake        桂花糕",Mdm Tan
+,Nonya Kueh Making Workshop,10/10/2026,10/10/2026,2:00pm - 4:00pm,"Level 4, Culinary Studio",C027242169,$50 (M)/$60 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session 
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $10/$15 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipes:
+Kueh making   糕点制作
+•        Pink png kueh   •        桃红饭粿
+•        Yam png kueh   •        芋头饭粿
+•        Salted and sweet filling png kueh     •        咸甜饭粿        
+
+Trainer: Mdm Tan",Mdm Tan
+,Variety Cooking Workshop for Adults,14/11/2026,14/11/2026,2:00pm - 4:00pm,"Level 4, Culinary Studio",C027251736,$60 (M)/$70 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session 
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $10/$15 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipe:
+Nasi lemak set   椰浆饭全套
+•	Rice  饭
+•	Sambal chilli   三峇辣椒
+•	Fish   鱼
+•	Sambal crayfish  三峇虾婆
+•	Sambal sotong   三峇苏东
+•	Ikan bilis with petai	江鱼仔炒臭豆
+
+       ",Mdm Tan
+,Variety Cooking Workshop for Adults,3/12/2026,3/12/2026,2:00pm - 5:00pm,"Level 4, Culinary Studio","
+
+C027251763",$60 (M)/$70 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session 
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $15/$20 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipe:
+Roasted chicken        烤鸡    Tortilla potatoes        马铃薯饼     Butter herbs spread with bread        香料烤面包     Chicken salad        鸡肉沙拉
+Chocolate pudding        巧克力布丁",Mdm Tan
+,Variety Cooking Workshop for Adults,5/12/2026,5/12/2026,2:00pm - 5:00pm,"Level 4, Culinary Studio",C027251768,$60 (M)/$70 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session 
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $15/$20 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipe:
+Baked Christmas chicken        烤圣诞鸡        Cranberry sauce        蔓越莓酱     Shepherd pie        馅饼     
+Christmas agar pudding        圣诞菜燕布丁    Baked Christmas fruit cake        圣诞杂果蛋糕
+
+",Mdm Tan
+,Variety Cooking Workshop for Adults,10/12/2026,10/12/2026,2:00pm - 5:00pm,"Level 4, Culinary Studio",C027251772,$60 (M)/$70 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session 
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $15/$20 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipe:
+Baked chicken with lemon rosemary and garlic	烤柠檬迷迭香蒜蓉牛油鸡
+Potato pie	马铃薯派      Butter olive rice	橄榄油饭      Shepherd pie	馅派      Pudding	布丁
+
+",Mdm Tan
+,Variety Cooking Workshop for Adults,19/12/2026,19/12/2026,2:00pm - 4:00pm,"Level 4, Culinary Studio",C027251783,$50 (M)/$60 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session 
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $10/$15 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipe:
+Homemade sweet dumpling  汤圆制作
+•        Peanut filling  花生馅
+•        Sesame filling  芝麻馅
+•        Gingko nuts  白果
+•        Luo han guo syrup        罗汉果糖水
+
+",Mdm Tan
+,Variety Baking Workshop for Adults,1/10/2026,22/10/2026,2:00pm - 4:00pm,"Level 4, Culinary Studio",C027242201,$120 (M)/$130 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session  
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $10/$15 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipe:
+Hazelnut chocolate cookies        榛果巧克力饼干          Oats and nestum cookies        燕麦奶油饼干
+Blackforest cookies        黑森林饼干       Olive crispy nut cookies        榄仁酥脆饼干       
+Vanilla oat cookies        香草燕麦饼干    Italian biscotti        意大利饼     
+Pistachio biscotti        开心果意大利饼     Earl grey cookies        伯爵茶饼干
+Longjing tea cookies        龙井茶饼干     Seaweed lemon cookies        海草柠檬饼干    
+Salted egg yolks pineapple tart        咸蛋黄梨酥",Mdm Tan
+,Variety Baking Workshop for Adults,5/11/2026,26/11/2026,2:00pm - 4:00pm,"Level 4, Culinary Studio",C027251618,$120 (M)/$130 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session  
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $10/$15 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipe:
+Cranberry kueh lapis        蔓越莓千层糕    Pineapple kueh lapis        黄梨千层糕    Coffee kueh lapis        咖啡千层糕
+Banana kueh lapis        香蕉千层糕    Yuzu kueh lapis        柚子千层糕     Passionfruit kueh lapis        百香果千层糕
+Jackfruit kueh lapis        菠萝蜜千层糕
+",Mdm Tan
+,Variety Baking Workshop for Adults,21/11/2026,21/11/2026,2:00pm - 4:00pm,"Level 4, Culinary Studio",C027251745,$50 (M)/$60 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session  
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $10/$15 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipe:
+Pineapple tart	黄梨挞      Pineapple cheese ball	黄梨芝士球    Pineapple yuzu cookies	黄梨柚子饼
+Salted egg yolks pineapple cookies	咸蛋黄黄梨饼
+",Mdm Tan
+,Variety Baking Workshop for Adults,28/11/2026,28/11/2026,2:00pm - 4:00pm,"Level 4, Culinary Studio",C027251748,$50 (M)/$60 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session  
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $10/$15 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipe:
+Ham quiche	火腿馅饼      Turkey ham quiche	火鸡馅饼    Mushroom quiche	香菇馅饼    Chicken quiche	鸡肉馅饼
+
+",Mdm Tan
+,Variety Baking Workshop for Adults,17/12/2026,17/12/2026,2:00pm - 5:00pm,"Level 4, Culinary Studio",C027251779,$60 (M)/$70 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session  
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $10/$15 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipe:
+Gingerbread man	姜饼人    Panettone	潘纳多尼    Christmas stollen	圣诞面包    
+Christmas minced fruit tart	圣诞杂果挞    Fruit cake	杂果蛋糕
+
+",Mdm Tan
+
+,Rice Dumpling Making Workshop,TBC,TBC,2:00pm - 5:00pm,"Level 4, Culinary Studio",TBC,$50 (M)/$60 (NM),,Mdm Tan
+,"Korean Cooking 
+(NEW CLASS)",TBC,TBC,6:00pm - 8:30pm,"Level 4, Culinary Studio",C027227707,$38 (M)/$45 (NM),"Adult Hands-on & DEMON cooking workshop
+Min: 7 pax, Max: 16
+1 session
+ingredient fee: $10 per pax per session (payable to trainer directly)
+all ingredients use are halal-certified 
+Recipes:
+Ban Chan (side dish)
+1) Myeol Chi Bok GGeum (stir fried anchovies) - DEMO
+2) Mu Saeng Chae (spicy shredded radish salad) - DEMO 
+3) Kkak Du Gi (radish kimchi) - HANDS-ON
+Participants need to bring own container to bring back the kimchi after class. Participants are encouraged to mask on and bring their own apron.
+
+",Ms Cho
+,Cakemaking,12/12/2026,12/12/2026,2:00pm - 5:00pm,"Level 4, Culinary Studio",C027251776,$50 (M)/$60 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session  
+Min: 6 pax
+Max: 16 pax
+Ingredients Fee: $15/$20 per pax per session payable to trainer 
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class. 
+Participants are encouraged to mask-on.
+
+Recipe:
+Blackforest log cake        黑森林树桐蛋糕     Durian log cake        榴莲树桐蛋糕     Chocolate log cake        巧克力树桐蛋糕
+Yuzu log cake        柚子树桐蛋糕",Mdm Tan
+,Mooncake Making,10/9/26,17/9/26,2:00pm - 4:00pm,"Level 4, Culinary Studio",C027241443,$100 (M)/$110 (NM),"the class will be either DEMO/SEMI HANDS-ON WORKSHOP for adults
+1 session
+Min: 6 pax  Max: 16 pax
+Ingredients Fee: $15/$20 per pax per session payable to trainer
+Ingredients use is Halal certified
+Participants need to bring own containers to bring back the food after class.
+Participants are encouraged to mask-on.
+Ingredients Fee: $15/$20
+Recipes:
+Durian crystal jade snowskin mooncake        榴莲翡翠冰皮月饼         Onden onden snowskin mooncake        温礼温礼冰皮月饼
+Gula melaka snowskin mooncake        椰糖冰皮月饼   Chocolate ball snowskin mooncake        巧克力球冰皮月饼
+Pistachio snowskin mooncake        开心果冰皮月饼   Black sesame snowskin mooncake        黑芝麻冰皮月饼
+Tiramisu snowskin mooncake        提拉米苏冰皮月饼
+
+",Mdm Tan
+,Workshop / School Holiday Classes
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,Preserved Flower Arrangement (Mini Dome),1/11/26,1/11/26,10:30 am - 1:00 pm,"Level 4, Activity Room 405",C027245749,$30 (M)/$40 (NM),"Open to participants aged 16 and above.
+Participants to bring a bag to carry their finished floral product home.
+Material fee of $32.00 is payable directly to the trainer",Ms Felisse Lim
+,AI Unlocked: Start Your Journey on Your Smartphone (AI30),22/11/26,22/11/26,11:00 am - 2:00 pm,"Level 4, Activity Room 405",C027251179,$10 (M)/$20 (NM),"Open to participants aged 16 and above.
+Participants to bring their own paper and pen.",SKILLS DEVELOPMENT ACADEMY PTE LTD
+,PA Kiddies: Bollydazz Kids (Age 5 - 12),23/11/26,23/11/26,1:30pm - 2:30pm,$30 (M)/$40 (NM),C027251183,,,Ms Tiffany Tan
+,Baking for Children (Age 5 - 12),22/11/26,22/11/26,11:00am - 1:00pm,"Level 4, Culinary Studio",C027248836,$35 (M)/$45 (NM),"School Holiday Baking Workshop 
+For children aged 5 - 12 years old ONLY
+HANDS-ON KIDS WORKSHOP WORKING IN PAIRS
+Min: 8 pax
+Max: 16
+Ingredients Fee: $10 (To pay to trainer)
+All ingredients use is Halal Certified
+Recipe:
+Simple Swiss Roll with Whipped cream
+Participants need to bring own containers to bring back the cookies after lesson. Participants are encouraged to mask on.
+","Mr Allan Teoh
+(Thrice Award-Winning Author)"
+,Creative Baking Workshop for Children,26/11/26,26/11/26,12:00pm - 2:00pm,"Level 4, Culinary Studio",C027246534,$30 (M)/$40 (NM),"School Holiday Baking Workshop:
+ For children aged 6 to 12 years old.
+ Min: 6 pax, Max: 16 pax
+ Participants need to bring own containers to bring back the food after baking.
+ participants are encouraged to mask-on and bring own apron along (Optional)
+ 
+ Recipe: 
+ Lollipop cookies 棒棒饼干
+ All ingredients use are Halal Certified.",Mdm Tan
+,Creative Baking Workshop for Children,3/12/26,3/12/26,12:00pm - 2:00pm,"Level 4, Culinary Studio","
+C027246535",$30 (M)/$40 (NM),"School Holiday Baking Workshop:
+ For children aged 6 to 12 years old.
+ Min: 6 pax, Max: 16 pax
+ Participants need to bring own containers to bring back the food after baking.
+ participants are encouraged to mask-on and bring own apron along (Optional)
+ 
+ Recipe: 
+ Tart making 塔制作
+ • Egg filling • 蛋馅 • Chocolate filling • 巧克力馅 • Fruit filling • 水果馅",Mdm Tan
+,PA Kiddies - Science Explorers: Star Tracks Space Adventure (Age 5 to 7),4/12/26,4/12/26,10:30am - 1:00pm,"Level 4, Activity Room 406",C027251853,$45 (M)/$50 (NM),"School Holiday Workshop for children aged 5 to 7 year old
+ Duration: 1 session of 2.5 hours
+ Min: 6 pax, Max: 20 pax
+ Materials Fee: $5 (To pay to trainer)",Genius X Play
+,PA Kiddies - Science Busters: Environmental Science (7 – 10 years old),4/12/26,4/12/26,2:30pm - 5:00pm,"Level 4, Activity Room 406",C027251871,$45 (M)/$50 (NM),"School Holiday Workshop for children aged 7 to 10 years old 
+Min: 6 pax
+Max: 20 pax
+Duration: 1 session of 2.5 hours
+Material Fee: $5 (To pay to trainer)",Genius X Play
+,Creative Baking Workshop for Children,10/12/26,10/12/26,12:00pm - 2:00pm,"Level 4, Culinary Studio",C027246567,$30 (M)/$40 (NM),"School Holiday Baking Workshop:
+ For children aged 6 to 12 years old.
+ Min: 6 pax, Max: 16 pax
+ Participants need to bring own containers to bring back the food after baking.
+ participants are encouraged to mask-on and bring own apron along (Optional)
+ 
+ Recipe: 
+ Gingerbread man cookies 姜人饼干",Mdm Tan
+,Creative Baking Workshop for Children,17/12/26,17/12/26,12:00pm - 2:00pm,"Level 4, Culinary Studio",C027246575,$30 (M)/$40 (NM),"School Holiday Baking Workshop:
+ For children aged 6 to 12 years old.
+ Min: 6 pax, Max: 16 pax
+ Participants need to bring own containers to bring back the food after baking.
+ participants are encouraged to mask-on and bring own apron along (Optional)
+ 
+ Recipe: 
+ Chocolate making 巧克力制作
+ • Hazelnut chocolate • 榛果巧克力 • Cocoa chocolate • 可可巧克力        • Chocolate bar • 巧克力块",Mdm Tan
+,Baking for Children (Age 5 - 12),20/12/26,20/12/26,11:00am - 1:00pm,"Level 4, Culinary Studio",C027248849,$35 (M)/$45 (NM),"School Holiday Baking Workshop 
+For children aged 5 - 12 years old ONLY
+HANDS-ON KIDS WORKSHOP WORKING IN PAIRS
+Min: 8 pax
+Max: 16
+Ingredients Fee: $10 (To pay to trainer)
+All ingredients use is Halal Certified
+Recipe: Chocolate Rice Brownies
+Participants need to bring own containers to bring back the cookies after lesson. Participants are encouraged to mask on.
+","Mr Allan Teoh
+(Thrice Award-Winning Author)"
+,Baking for Children (Age 5 - 12),27/12/26,27/12/26,11:00am - 1:00pm,"Level 4, Culinary Studio",C027248854,$35 (M)/$45 (NM),"School Holiday Baking Workshop 
+For children aged 5 - 12 years old ONLY
+HANDS-ON KIDS WORKSHOP WORKING IN PAIRS
+Min: 8 pax
+Max: 16
+Ingredients Fee: $10 (To pay to trainer)
+All ingredients use is Halal Certified
+Recipe: Breakfast pancakes with fruits
+Participants need to bring own containers to bring back the cookies after lesson. Participants are encouraged to mask on.
+","Mr Allan Teoh
+(Thrice Award-Winning Author)"
+,Creative Baking Workshop for Children,31/12/26,31/12/26,12:00pm - 2:00pm,"Level 4, Culinary Studio",C027246584,$30 (M)/$40 (NM),"School Holiday Baking Workshop:
+ For children aged 6 to 12 years old.
+ Min: 6 pax, Max: 16 pax
+ Participants need to bring own containers to bring back the food after baking.
+ participants are encouraged to mask-on and bring own apron along (Optional)
+ 
+ Recipe: 
+ Assorted mochi making 什锦大幅",Mdm Tan
+,Miniature Clay Figurines for Kids,23/11/26,23/11/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245636,$25 (M)/$35 (NM)," Miniature Clay Figurines Making 
+ Theme: Winnie - The Pooh And Christmas Tree Making
+ Min: 5 pax, Max: 12 pax
+ For children age 6 onwards
+ Materials Fee: $10 (pay directly to trainer)
+ Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,SCHOOL HOLIDAY CLASSES
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,Miniature Clay Figurines for Kids,24/6/2025,24/6/2025,2:30pm - 4:00pm,"Level 4, Activity Room 406",C027149669,$25 (M)/$35 (NM),"School Holiday Workshop
+Miniature Clay Figurines Making 
+Theme: Miniature Donald Duck & Ice Cream Sundae Making 
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Course fees: $25 (Member) / $35 (Non-member)
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines
+
+",Ms Quek
+,Miniature Clay Figurines for Kids,23/6/2025,23/6/2025,2:30pm - 4:00pm,"Level 4, Activity Room 405",C027149688,$25 (M)/$35 (NM),"School Holiday Workshop
+Miniature Clay Figurines Making 
+Theme:ice kachang with chilli crab
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Course fees: $25 (Member) / $35 (Non-member)
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines
+
+",Ms Quek
+,Miniature Clay Figurines for Kids,25/6/2025,25/6/2025,2:30pm - 4:00pm,"Level 4, Activity Room 405",C027150213,$25 (M)/$35 (NM),"School Holiday Workshop
+Miniature Clay Figurines Making 
+Theme: Pokemon Bulbasaur 
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Course fees: $25 (Member) / $35 (Non-member)
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines
+
+",Ms Quek
+,Baking for Children (Age 5 - 12),25/11/2024,25/11/2024,2:00pm - 4:00pm,"Level 4, Culinary Studio",C027108999,$30 (M)/$35 (NM),Durian glutinous kaya kueh,榴莲糯米咖椰粿
+,Miniature Clay Figurines for Kids,21/6/2025,21/6/2025,2:30pm - 4:00pm,"Level 4, Activity Room 406",C027150222,$25 (M)/$35 (NM),"School Holiday Workshop
+Miniature Clay Figurines Making 
+Theme: Fortune Cat  
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Course fees: $25 (Member) / $35 (Non-member)
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines
+
+",MS Quek
+
+,School Holidays Baking Course
+,School Holidays Courses (JUNE 2026)
+,COURSE NAME,START DATE,END DATE,TIME,VENUE,COURSE CODE,COURSE FEE,REMARKS,TRAINER
+,Miniature Clay Figurines for Kids,3/6/26,3/6/26,1:30pm - 3:00pm ,"Level 4, Activity Room 405",C027210911,$25 (M)/$30 (NM),"
+Theme: Miniature Hangyodon and Pompompurin figurines Making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,3/6/26,3/6/26,1:30pm - 3:00pm ,"Level 4, Activity Room 406",C027211219,$25 (M)/$30 (NM),"
+Theme: Pikachu figurines Making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,24/11/26,24/11/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245658,$25 (M)/$35 (NM)," Miniature Clay Figurines Making 
+ Theme: Cinnamoroll & Miffy figurines making
+ Min: 5 pax, Max: 12 pax
+ For children age 6 onwards
+ Materials Fee: $10 (pay directly to trainer)
+ Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,25/11/26,25/11/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245687,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme:  Kuromi figurine making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,1/12/26,1/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245702,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme:  Pokemon Bulbasaur Figurine Making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,2/12/26,2/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245710,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme: Pikachu and Eevee Figurine Making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,3/12/26,3/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245715,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme: Cinnamoroll and Miffy Figurine Making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,4/12/26,4/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245725,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme: Winnie - The Pooh And Christmas Tree Making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,8/12/26,8/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245732,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme: Pikachu and Eevee Figurines Making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,9/12/26,9/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245735,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme: Kuromi Figurines Making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,10/12/26,10/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245737,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme: Pompompurin Table set 
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,11/12/26,11/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245744,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme: Charmander and Squirtle 
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,15/12/26,15/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245746,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme: Rilakkuma and Lotso 
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,16/12/26,16/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245759,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme: Cinnamoroll and Miffy
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,17/12/26,17/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245787,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme: Winnie - The Pooh and Christmas Tree Making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,18/12/26,18/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245801,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme: Kuromi Figurine Making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,21/12/26,21/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245802,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme:  Snowman Figurine Making
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,22/12/26,22/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245804,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme:  Tsum Tsum Merry Christmas
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+,Miniature Clay Figurines for Kids,23/12/26,23/12/26,1:30pm - 3:00pm,"Level 4, Activity Room 405",C027245805,$25 (M)/$35 (NM),"Miniature Clay Figurines Making 
+Theme:  Kuromi Merry Christmas
+Min: 5 pax, Max: 12 pax
+For children age 6 onwards
+Materials Fee: $10 (pay directly to trainer)
+Material include: clay, glue, toothpick and all the necessary items needed to form the figurines",Ms Quek
+</script>
+<script>
+/* ===== SETTINGS =====
+   Paste the "Publish to web" CSV link of the main course tab here.
+   Leave empty to use the course list saved inside this page. */
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8dCBD3mIxLCcwyUiiUiTHINjosrzUKM3nshu8u74mk0yCyXhNAoD3bndnJTF5vajcW5i_zp8EOp7o/pub?gid=1337078230&single=true&output=csv";
+const ONEPA_URL = "https://www.onepa.gov.sg/courses/search?course=&category=&category2=&sort=rel_prod&outlet=Fernvale+CC&days=All&time=all";
+/* ==================== */
+
+const DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const SHORT={Monday:"Mon",Tuesday:"Tue",Wednesday:"Wed",Thursday:"Thu",Friday:"Fri",Saturday:"Sat",Sunday:"Sun"};
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const state={q:"",cat:"",day:"",aud:"",tbc:true};
+let courses=[];
+
+function sgToday(){ // today's date in Singapore
+  const s=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Singapore"});
+  const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d);
+}
+const TODAY=sgToday();
+
+function parseDate(v){
+  v=(v||"").trim(); if(!v||/^tbc$/i.test(v)) return null;
+  let m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if(m) return new Date(+m[1],m[2]-1,+m[3]);
+  m=v.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})$/);
+  if(m){let y=+m[3]; if(y<100) y+=2000; return new Date(y,m[2]-1,+m[1]);}
+  const t=new Date(v); return isNaN(t)?null:new Date(t.getFullYear(),t.getMonth(),t.getDate());
+}
+const fmt=(d,yr)=>d.getDate()+" "+MON[d.getMonth()]+(yr?" "+d.getFullYear():"");
+function fmtRange(s,e){
+  if(!s) return "Dates to be confirmed";
+  if(!e||+s===+e) return DAYS[(s.getDay()+6)%7]+", "+fmt(s,true);
+  return fmt(s,s.getFullYear()!==e.getFullYear())+" – "+fmt(e,true);
+}
+
+/* ---- Reading the main course tab ----
+   The tab has day headings (Monday…Sunday), section headings (Culinary, Workshops…),
+   repeated header rows, and blank cells that mean "same as the row above". */
+const SECTION_RULES=[[/culinary/i,"culinary"],[/workshop|school holiday|holiday/i,"workshop"]];
+function cleanCode(v){const m=(v||"").match(/C\d{6,}/);return m?m[0]:"";}
+function splitFee(v){
+  const s=(v||"").replace(/\s+/g," ").trim();
+  const m=s.match(/\$\s*([\d.]+)\s*\(?\s*M\s*\)?\s*[\/&]\s*\$?\s*([\d.]*)\s*\(?\s*NM/i);
+  const sess=(s.match(/(\d+)\s*sessions?/i)||[])[1]||"";
+  if(m) return {m:"$"+m[1], nm:m[2]?"$"+m[2]:"$"+m[1], sess, raw:""};
+  const same=s.match(/^\$\s*([\d.]+)\s*\(M\)\s*&\s*\(NM\)/i);
+  if(same) return {m:"$"+same[1], nm:"$"+same[1], sess, raw:""};
+  return {m:"",nm:"",sess,raw:s};
+}
+function guessCategory(name,section,kids){
+  const n=name.toLowerCase();
+  if(section==="culinary"||/bak|cook|dianxin|kueh|cake|bread|dumpling|mooncake/.test(n)) return section==="workshop"&&kids?"Holiday Workshops":"Cooking & Baking";
+  if(section==="workshop"&&kids) return "Holiday Workshops";
+  if(/aikido|karate|taekwondo/.test(n)) return "Martial Arts";
+  if(/korean|japanese|thai|chinese language|pre-primary chinese|mandarin/.test(n)) return "Languages";
+  if(/piano|violin|guitar/.test(n)) return "Music";
+  if(/zumba|dance|ballet|kpop|pound|bollydazz|hip hop/.test(n)) return "Dance";
+  if(/yoga|pilates|taiji|qigong|k!\s*fit|fit|cardio|piloxing|gua sha|acupuncture|rebound/.test(n)) return "Fitness & Wellness";
+  if(/drawing|\bart\b|crochet|knit|calligraphy|clay|flower|drama/.test(n)) return "Arts & Drama";
+  return "Enrichment";
+}
+function isKids(name,remarks){
+  const t=(name+" "+remarks).toLowerCase();
+  if(/adult|senior|16 & above|16 and above|13yo/.test(name.toLowerCase())) return false;
+  return /child|kid|junior|ballet|abacus|phonics|\bstem\b|science|primary|\baged? ?\d|\d+\s*(to|-|–)\s*\d+\s*years?|k1|clay figurine|kpop/.test(t) && !/for adults|adult class|adults to seniors|aged 16|16 and above|13yo/.test(t);
+}
+
+function parseMainTab(rows){
+  // find column positions from the first header row
+  let hdr=rows.find(r=>r.some(c=>/^\s*course name\s*$/i.test(c||"")));
+  if(!hdr) throw new Error("No COURSE NAME header row found");
+  const col={}; hdr.forEach((c,i)=>{const k=(c||"").trim().toUpperCase(); if(k&&!(k in col)) col[k]=i;});
+  const get=(r,k)=>((r[col[k]]||"")+"").trim();
+  let day="", section="", prev=null; const out=[], seen=new Set();
+  for(const r of rows){
+    const cells=r.map(c=>(c||"").trim()); const filled=cells.filter(Boolean);
+    const name=get(r,"COURSE NAME");
+    if(/^course name$/i.test(name)){ continue; }
+    // headings: a row with a single filled cell
+    if(filled.length===1 && !get(r,"START DATE")){
+      const h=filled[0];
+      if(/fernvale community club/i.test(h)) continue;
+      if(DAYS.includes(h.replace(/s$/,""))){ day=h.replace(/s$/,""); prev=null; continue; }
+      const rule=h.length<80 && SECTION_RULES.find(([re])=>re.test(h));
+      if(rule){ section=rule[1]; day=""; prev=null; continue; }
+    }
+    if(!name){ continue; }
+    const take=(k)=>{const v=get(r,k); return v || (prev?prev[k]:"");};
+    // a blank trainer cell means this row sits inside a merged block, so remarks carry down too
+    const merged=!get(r,"TRAINER");
+    let venueCell=get(r,"VENUE"), feeCell=get(r,"COURSE FEE");
+    let shifted=false;
+    if(/\$\s*\d/.test(venueCell) && !/\$\s*\d/.test(feeCell)){ feeCell=venueCell; venueCell=""; shifted=true; }
+    const rec={ "COURSE NAME":name, "TIME":take("TIME"), "VENUE":venueCell||(prev&&!shifted?prev["VENUE"]:""),
+      "COURSE FEE":feeCell||(prev?prev["COURSE FEE"]:""),
+      "REMARKS":get(r,"REMARKS")||(merged&&prev?prev["REMARKS"]:""), "TRAINER":take("TRAINER") };
+    prev=rec;
+    let start=parseDate(get(r,"START DATE")), end=parseDate(get(r,"END DATE"))||start;
+    if(start&&end&&end<start){ const e2=new Date(end); e2.setFullYear(end.getFullYear()+1); if(e2>=start) end=e2; }
+    const fee=splitFee(rec["COURSE FEE"]);
+    const remarks=rec["REMARKS"];
+    const noLesson=remarks.split(/\n/).map(s=>s.trim()).filter(s=>/^no (lesson|class)/i.test(s)).join("\n");
+    const notes=remarks.split(/\n/).map(s=>s.trim()).filter(s=>s&&!/^no (lesson|class)/i.test(s)).join("\n");
+    const cleanName=name.replace(/\s*\n\s*/g," ").replace(/\s{2,}/g," ").trim();
+    const kids=isKids(cleanName,remarks);
+    const allAges=/adults? (are |is )?welcome/i.test(remarks) && kids;
+    const oneDay=!!(start&&end&&+start===+end);
+    let d=(section===""&&day)?day:(start?DAYS[(start.getDay()+6)%7]:(day||""));
+    let status; if(!start) status="tbc"; else if(start>TODAY) status=(start-TODAY)/864e5<=14?"soon":"upcoming"; else status="ongoing";
+    const c={show:true, cat:guessCategory(cleanName,section,kids), aud:allAges?"All ages":(kids?"Kids":"Adults & Seniors"),
+      name:cleanName, day:d, start, end, oneDay, time:rec["TIME"].replace(/\s*\n\s*/g," ").replace(/\s+to\s+/i," – ").replace(/\s*-\s*/," – ").replace(/\s+(am|pm)/gi,"$1").trim(),
+      venue:rec["VENUE"].replace(/\s*\n\s*/g," ").replace(/,(?=\S)/g,", "), code:cleanCode(get(r,"COURSE CODE")),
+      m:fee.m, nm:fee.nm, sess:fee.sess, feeRaw:fee.raw, age:"", trainer:rec["TRAINER"].replace(/\s*\n\s*/g," "),
+      noLesson, notes, status};
+    const key=[c.name,c.day,c.time,c.code,+c.start].join("|");
+    if(seen.has(key)) continue; seen.add(key);
+    out.push(c);
+  }
+  return out;
+}
+function keep(c){ return c.name && !(c.end && c.end<TODAY); }
+
+function load(text,source){
+  const parsed=Papa.parse(text.replace(/^﻿/,""),{header:false,skipEmptyLines:false});
+  courses=parseMainTab(parsed.data).filter(keep);
+  document.getElementById("sync").textContent=source;
+  buildFilters(); render();
+}
+
+function timeKey(t){
+  const m=(t||"").match(/(\d{1,2})[:.](\d{2})\s*(am|pm)/i); if(!m) return 9999;
+  let h=+m[1]%12; if(/pm/i.test(m[3])) h+=12; return h*60+ +m[2];
+}
+
+function buildFilters(){
+  const cats=[...new Set(courses.map(c=>c.cat))].sort();
+  const sel=document.getElementById("cat");
+  sel.innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join("");
+  sel.value=state.cat;
+  chipRow("days",[["","All days"],...DAYS.map(d=>[d,SHORT[d]]),["oneday","One-day workshops"]],"day");
+  chipRow("aud",[["","Everyone"],["Kids","Kids"],["Adults & Seniors","Adults & seniors"]],"aud");
+}
+function chipRow(id,items,key){
+  const el=document.getElementById(id);
+  el.innerHTML=items.map(([v,l])=>`<button class="chip" type="button" data-v="${esc(v)}" aria-pressed="${state[key]===v}">${esc(l)}</button>`).join("");
+  el.onclick=e=>{const b=e.target.closest(".chip"); if(!b) return; state[key]=b.dataset.v; chipRow(id,items,key); render();};
+}
+
+function matches(c){
+  if(!state.tbc && c.status==="tbc") return false;
+  if(state.cat && c.cat!==state.cat) return false;
+  if(state.aud && c.aud!==state.aud && c.aud!=="All ages") return false;
+  if(state.day==="oneday" && !c.oneDay) return false;
+  if(state.day && state.day!=="oneday" && (c.oneDay || c.day!==state.day)) return false;
+  if(state.q){
+    const hay=[c.name,c.cat,c.trainer,c.venue,c.code,c.notes,c.age].join(" ").toLowerCase();
+    if(!state.q.toLowerCase().split(/\s+/).every(w=>hay.includes(w))) return false;
+  }
+  return true;
+}
+
+const STATUS={ongoing:["Ongoing","st-ongoing"],soon:["Starting soon","st-soon"],upcoming:["Upcoming","st-upcoming"],tbc:["Dates to be confirmed","st-tbc"]};
+const ORDER={ongoing:0,soon:1,upcoming:2,tbc:3};
+
+function card(c){
+  const [label,cls]=STATUS[c.status];
+  const fee = (c.m && /^\$/.test(c.m)) ? `<span class="fee">${esc(c.m)} <small>member</small> · ${esc(c.nm)} <small>non-member</small></span>` : esc(c.feeRaw||"See onePA");
+  const sess = c.sess ? ` <small style="color:var(--muted)">(${esc(c.sess)} session${c.sess==="1"?"":"s"})</small>`:"";
+  const rows=[["Fee",fee+sess],c.venue&&["Venue",esc(c.venue)],c.age&&["Age",esc(c.age)],c.trainer&&["Trainer",esc(c.trainer)]].filter(Boolean);
+  const more = (c.notes||c.noLesson) ? `<details><summary>More details</summary>${c.noLesson?`<p class="nl">No lesson: ${esc(c.noLesson)}</p>`:""}${c.notes?`<p>${esc(c.notes)}</p>`:""}</details>`:"";
+  const act = c.code
+    ? `<button class="code" type="button" data-code="${esc(c.code)}" title="Copy course code">${esc(c.code)}</button><a class="reg" href="${ONEPA_URL}" target="_blank" rel="noopener">Register on onePA</a>`
+    : `<span class="nocode">${c.status==="tbc"?"Registration opens when dates are confirmed":"Enquire with the trainer or CC office"}</span>`;
+  return `<article class="card">
+    <div class="tags"><span class="pill ${cls}">${label}</span><span class="cat">${esc(c.cat)}</span></div>
+    <h3>${esc(c.name)}</h3>
+    <div class="when"><span class="t">${c.oneDay?esc(c.time):esc((c.day||"")+" · "+c.time)}</span><span class="d">${fmtRange(c.start,c.end)}</span></div>
+    <dl>${rows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
+    ${more}
+    <div class="actions">${act}</div>
+  </article>`;
+}
+
+function render(){
+  const list=courses.filter(matches);
+  const weekly=list.filter(c=>!c.oneDay), oneday=list.filter(c=>c.oneDay);
+  let html="";
+  const sortWeekly=(a,b)=>ORDER[a.status]-ORDER[b.status]||timeKey(a.time)-timeKey(b.time)||a.name.localeCompare(b.name);
+  for(const d of [...DAYS,"__other"]){
+    const items=weekly.filter(c=>d==="__other"?!DAYS.includes(c.day):c.day===d).sort(sortWeekly);
+    if(!items.length) continue;
+    const title=d==="__other"?"Day to be confirmed":d+"s";
+    html+=`<section class="day"><div class="dayhead"><h2>${title}</h2><span class="daycount">${items.length} ${items.length===1?"class":"classes"}</span></div><div class="grid">${items.map(card).join("")}</div></section>`;
+  }
+  if(oneday.length){
+    oneday.sort((a,b)=>a.start-b.start||timeKey(a.time)-timeKey(b.time));
+    html+=`<section class="day"><div class="dayhead"><h2>One-day workshops</h2><span class="daycount">${oneday.length} sessions, by date</span></div><div class="grid">${oneday.map(card).join("")}</div></section>`;
+  }
+  document.getElementById("list").innerHTML=html||`<div class="empty">No courses match these filters. Try another day or category.</div>`;
+  document.getElementById("count").innerHTML=`Showing <strong>${list.length}</strong> of ${courses.length} courses and workshops`;
+  const filtered=state.q||state.cat||state.day||state.aud||!state.tbc;
+  document.getElementById("reset").hidden=!filtered;
+}
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
+
+document.getElementById("q").addEventListener("input",e=>{state.q=e.target.value.trim();render();});
+document.getElementById("cat").addEventListener("change",e=>{state.cat=e.target.value;render();});
+document.getElementById("tbc").addEventListener("change",e=>{state.tbc=e.target.checked;render();});
+document.getElementById("reset").addEventListener("click",()=>{
+  Object.assign(state,{q:"",cat:"",day:"",aud:"",tbc:true});
+  document.getElementById("q").value=""; document.getElementById("tbc").checked=true; buildFilters(); render();
+});
+document.getElementById("list").addEventListener("click",async e=>{
+  const b=e.target.closest(".code"); if(!b) return;
+  try{ await navigator.clipboard.writeText(b.dataset.code); b.textContent="Copied ✓"; b.dataset.copied="";
+    setTimeout(()=>{b.textContent=b.dataset.code; delete b.dataset.copied;},1500);
+  }catch(_){ const r=document.createRange(); r.selectNodeContents(b); const s=getSelection(); s.removeAllRanges(); s.addRange(r); }
+});
+
+const fallbackText=document.getElementById("fallback").textContent;
+const savedNote="Showing the course list saved in this page.";
+if(SHEET_CSV_URL){
+  fetch(SHEET_CSV_URL+(SHEET_CSV_URL.includes("?")?"&":"?")+"t="+Date.now())
+    .then(r=>{if(!r.ok) throw 0; return r.text();})
+    .then(t=>load(t,"Updated live from the Fernvale CC course list."))
+    .catch(()=>load(fallbackText,savedNote+" The live list could not be reached."));
+}else load(fallbackText,savedNote);
+</script>
+
+</body>
+</html>
